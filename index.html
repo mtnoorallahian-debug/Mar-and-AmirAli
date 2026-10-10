@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مار و امیرعلی 🐍</title>
+<style>
+:root{
+  --ink:#49315f;
+  --pink:#ff70a6;
+  --purple:#8657df;
+  --yellow:#ffe66d;
+  --green:#62dfae;
+  --blue:#6bd5ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--ink);
+  font-family:Tahoma,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 10% 10%,#fff3a6 0 5%,transparent 20%),
+    radial-gradient(circle at 90% 20%,#ffb9df 0 6%,transparent 22%),
+    linear-gradient(145deg,#b8f4ff,#ffd5e8 50%,#fff0a7);
+}
+button,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+header{text-align:center;padding:20px 12px 8px}
+h1{
+  font-size:clamp(30px,7vw,54px);margin:0;
+  color:#7445c8;text-shadow:3px 4px 0 #fff,5px 7px 0 #ffacd0;
+  letter-spacing:-1px
+}
+.subtitle{font-weight:bold;margin-top:10px;color:#8057a4}
+main{width:min(1120px,100%);margin:auto;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}
+.panel{
+  background:#ffffffd9;border:3px solid white;border-radius:25px;
+  padding:13px;box-shadow:0 9px 0 #ad87d655,0 15px 30px #7952a522;
+  min-width:0
+}
+.board-wrap{position:relative}
+#board{
+  display:grid;grid-template-columns:repeat(10,minmax(0,1fr));
+  aspect-ratio:1;border:4px solid white;border-radius:17px;
+  overflow:hidden;box-shadow:0 5px 0 #b39ad7;position:relative;
+  background:#fff
+}
+.cell{
+  min-width:0;min-height:0;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid #ffffffb0;overflow:hidden
+}
+.cell:nth-child(4n+1){background:#ffe7a3}
+.cell:nth-child(4n+2){background:#c9f8dc}
+.cell:nth-child(4n+3){background:#c8edff}
+.cell:nth-child(4n){background:#ffd6eb}
+.cell-number{
+  position:absolute;top:2px;left:3px;font-size:clamp(7px,1.5vw,13px);
+  font-weight:bold;color:#654b81;z-index:2
+}
+.cell-icon{
+  font-size:clamp(13px,3vw,29px);line-height:1.05;
+  filter:drop-shadow(0 2px 1px #ffffff99);z-index:1
+}
+.cell-special{font-size:clamp(12px,2.8vw,25px)}
+.cell-players{
+  display:flex;justify-content:center;align-items:center;
+  gap:0;position:absolute;bottom:2px;left:0;right:0;z-index:4
+}
+.token{
+  width:clamp(15px,3vw,27px);height:clamp(15px,3vw,27px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(11px,2.3vw,21px);border-radius:50%;
+  background:white;border:2px solid white;
+  box-shadow:0 2px 5px #5b3a7b55;
+  animation:pop .25s ease-out
+}
+.token.p1{background:#fff0a6;border-color:#ffb82e}
+.token.p2{background:#ffd5ef;border-color:#ff67a9}
+.token.robot{background:#d6f5ff;border-color:#45bde8}
+@keyframes pop{from{transform:scale(.5)}to{transform:scale(1)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}75%{transform:rotate(9deg)}}
+@keyframes diceRoll{0%{transform:rotate(0) scale(1)}35%{transform:rotate(100deg) scale(1.12)}70%{transform:rotate(260deg) scale(.9)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes sparkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.2) rotate(12deg)}}
+#board.rolling .token{animation:wiggle .25s infinite}
+.topbar{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.pill{
+  border-radius:30px;padding:7px 11px;font-size:12px;font-weight:bold;
+  background:#f0e6ff;border:2px solid white
+}
+.player-card{
+  display:flex;align-items:center;justify-content:space-between;gap:7px;
+  border:3px solid white;border-radius:17px;padding:10px;
+  background:#fff4c6;margin-bottom:8px
+}
+.player-card.p2card{background:#ffe4f1}
+.player-card.active{outline:3px solid #8c5bdf;box-shadow:0 0 0 6px #8c5bdf25}
+.player-avatar{font-size:28px}
+.player-label{font-weight:bold;font-size:14px}
+.player-position{font-size:12px;color:#81659c;margin-top:4px}
+.turn-indicator{font-size:11px;color:#7b53b9;font-weight:bold}
+.dice-area{text-align:center;padding:7px 0}
+.dice{
+  width:86px;height:86px;border:4px solid white;border-radius:23px;
+  margin:0 auto 9px;background:linear-gradient(145deg,#fff,#f2e8ff);
+  box-shadow:0 6px 0 #c5a6ec,0 8px 14px #a580ce44;
+  font-size:52px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer
+}
+.dice.rolling{animation:diceRoll .55s ease-in-out}
+.dice-caption{font-size:12px;color:#8564a6;margin-bottom:8px}
+.btn{
+  border:0;border-radius:14px;padding:12px 10px;font-weight:bold;
+  color:white;background:#8657df;box-shadow:0 4px 0 #6038ac;
+  transition:transform .12s,filter .12s
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6038ac}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.3)}
+.btn.full{width:100%}
+.btn.green{background:#2dbd86;box-shadow:0 4px 0 #17895f}
+.btn.pink{background:#ff70a6;box-shadow:0 4px 0 #d6417c}
+.btn.blue{background:#36b7e9;box-shadow:0 4px 0 #1685b2}
+.control-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+#message{
+  margin:10px 0;padding:12px;border-radius:15px;background:#f2e9ff;
+  border:2px dashed #c4a3f4;text-align:center;font-size:13px;
+  font-weight:bold;line-height:1.9;min-height:52px
+}
+.timer-box{
+  border-radius:14px;background:#e5f9ff;border:2px solid white;
+  padding:9px;text-align:center;margin-top:8px
+}
+.timer-label{font-size:12px;color:#557da1}
+#timer{font-size:25px;font-weight:900;color:#2989ba;direction:ltr}
+#timer.warning{color:#e84573;animation:sparkle .5s infinite}
+.section-title{font-weight:900;margin:3px 0 12px;font-size:18px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}
+select{
+  width:100%;padding:11px;border:2px solid #e4d5fa;
+  border-radius:12px;background:white;color:#5c427e
+}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+.legend div{background:#f8f2ff;border-radius:10px;padding:8px;font-size:12px}
+.log{margin-top:12px;background:#fff8dc;border-radius:14px;padding:10px}
+.log-title{font-size:13px;font-weight:bold;margin-bottom:6px}
+#log{font-size:12px;line-height:1.9;color:#795b93;max-height:130px;overflow:auto}
+.modal{
+  position:fixed;inset:0;background:#3c235a99;z-index:20;
+  display:flex;align-items:center;justify-content:center;padding:15px;
+  backdrop-filter:blur(5px)
+}
+.modal-card{
+  background:#fff9e9;border:5px solid white;border-radius:28px;
+  width:min(420px,100%);padding:24px;text-align:center;
+  box-shadow:0 15px 0 #b38ad6,0 25px 70px #39205055
+}
+.modal-card h2{font-size:29px;margin:0 0 8px;color:#7445c8}
+.modal-card p{font-size:13px;line-height:1.9;color:#8c6ba7}
+.modal-emoji{font-size:58px;animation:bounce 1.2s infinite}
+.hidden{display:none!important}
+.footer{text-align:center;padding:17px;font-size:12px;font-weight:bold;color:#805b9e}
+@media(max-width:800px){
+  main{grid-template-columns:1fr;max-width:620px}
+  .side-panel{display:grid;grid-template-columns:1fr;gap:4px}
+  .cell-number{font-size:clamp(7px,2vw,12px)}
+}
+@media(max-width:370px){
+  main{padding:7px;gap:9px}
+  .panel{padding:9px;border-radius:18px}
+  .dice{width:72px;height:72px;font-size:43px}
+  .player-card{padding:7px}
+  .player-label{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐍 مار و امیرعلی 🪜</h1>
+  <div class="subtitle">🎲 تاس بنداز، از نردبون برو بالا، حواست به مارها باشه! 🎉</div>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="topbar">
+      <span class="pill">🌈 صفحهٔ رنگین‌کمانی</span>
+      <span class="pill" id="modeBadge">🤖 بازی با ربات</span>
+    </div>
+
+    <div class="player-card active" id="card1">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="player-avatar" id="avatar1">🦊</span>
+        <div>
+          <div class="player-label" id="name1">طاها</div>
+          <div class="player-position" id="pos1">خانهٔ ۱</div>
+        </div>
+      </div>
+      <div class="turn-indicator" id="turn1">نوبت توئه! ⭐</div>
+    </div>
+
+    <div class="player-card p2card" id="card2">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="player-avatar" id="avatar2">🤖</span>
+        <div>
+          <div class="player-label" id="name2">امیرعلی (ربات)</div>
+          <div class="player-position" id="pos2">خانهٔ ۱</div>
+        </div>
+      </div>
+      <div class="turn-indicator" id="turn2">منتظر نوبت</div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="board" aria-label="صفحه بازی مار و پله"></div>
+    </div>
+
+    <div id="message" aria-live="polite">🎲 برای شروع تاس بنداز!</div>
+  </section>
+
+  <aside class="panel side-panel">
+    <div class="section-title">🎲 وقت بازیه!</div>
+    <div class="dice-area">
+      <button class="dice" id="dice" type="button" aria-label="انداختن تاس">🎲</button>
+      <div class="dice-caption" id="diceCaption">تاس منتظر توئه!</div>
+      <button class="btn green full" id="rollBtn" type="button">بزن بریم! 🎲</button>
+    </div>
+
+    <div class="timer-box">
+      <div class="timer-label">⏰ زمان باقی‌ماندهٔ این نوبت</div>
+      <div id="timer">15</div>
+    </div>
+
+    <div style="margin-top:17px" class="section-title">⚙️ تنظیمات بازی</div>
+    <div class="field">
+      <label for="mode">👫 چطور بازی کنیم؟</label>
+      <select id="mode">
+        <option value="bot">🤖 با ربات امیرعلی</option>
+        <option value="two">👬 دونفره با هم</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="p1name">🧒 اسم بازیکن اول</label>
+      <select id="avatarChoice">
+        <option value="🦊">🦊 روباه زرنگ</option>
+        <option value="🐼">🐼 پاندا</option>
+        <option value="🐸">🐸 قورباغه</option>
+        <option value="🐯">🐯 ببر کوچولو</option>
+        <option value="🐵">🐵 میمون شیطون</option>
+        <option value="🦄">🦄 تک‌شاخ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="turnLength">⏱️ زمان هر نوبت</label>
+      <select id="turnLength">
+        <option value="10">۱۰ ثانیه</option>
+        <option value="15" selected>۱۵ ثانیه</option>
+        <option value="20">۲۰ ثانیه</option>
+        <option value="30">۳۰ ثانیه</option>
+      </select>
+    </div>
+
+    <button class="btn pink full" id="newGameBtn" type="button">🔄 شروع بازی جدید</button>
+
+    <div class="legend">
+      <div>🐍 مار = چند خانه پایین!</div>
+      <div>🪜 نردبون = چند خانه بالا!</div>
+      <div>⭐ خانهٔ ۱۰۰ = برنده!</div>
+      <div>🎲 عدد تاس = حرکت تو!</div>
+    </div>
+
+    <div class="log">
+      <div class="log-title">📜 اتفاق‌های بازی</div>
+      <div id="log">بازی آماده است! تاس بنداز! 🎉</div>
+    </div>
+  </aside>
+</main>
+
+<div class="footer">ساخته‌شده با کلی عشق برای طاها و امیرعلی 💜</div>
+
+<div class="modal" id="winModal" style="display:none">
+  <div class="modal-card">
+    <div class="modal-emoji" id="winEmoji">🏆</div>
+    <h2 id="winTitle">آفرین!</h2>
+    <p id="winText">تو برنده شدی!</p>
+    <button class="btn green full" id="playAgainBtn" type="button">یه بازی دیگه! 🎲</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  const snakes = {
+    17:7, 32:15, 48:26, 56:36, 63:43,
+    71:51, 88:67, 95:75, 99:78
+  };
+  const ladders = {
+    4:14, 9:31, 20:38, 28:46, 40:59,
+    51:67, 70:90, 79:98
+  };
+
+  const turnEmojis = ["🎲","⭐","🌈","🍭","🎉","🦋"];
+  const state = {
+    positions:[1,1],
+    current:0,
+    busy:false,
+    over:false,
+    mode:"bot",
+    timer:null,
+    remaining:15,
+    duration:15,
+    turnToken:0,
+    logs:[]
+  };
+
+  function buildBoard(){
+    const board=$("board");
+    board.innerHTML="";
+
+    // شماره‌ها به شکل مارپیچ رفت‌وبرگشتی از ۱ تا ۱۰۰
+    for(let row=9;row>=0;row--){
+      const leftToRight=(row%2===0);
+      for(let col=0;col<10;col++){
+        const actualCol=leftToRight?col:9-col;
+        const n=row*10+actualCol+1;
+        const cell=document.createElement("div");
+        cell.className="cell";
+        cell.dataset.number=n;
+
+        const num=document.createElement("span");
+        num.className="cell-number";
+        num.textContent=n;
+        cell.appendChild(num);
+
+        if(snakes[n]){
+          const icon=document.createElement("span");
+          icon.className="cell-icon cell-special";
+          icon.textContent="🐍";
+          icon.title=`مار: ${n} به ${snakes[n]}`;
+          cell.appendChild(icon);
+        }else if(ladders[n]){
+          const icon=document.createElement("span");
+          icon.className="cell-icon cell-special";
+          icon.textContent="🪜";
+          icon.title=`نردبون: ${n} به ${ladders[n]}`;
+          cell.appendChild(icon);
+        }else if(n===100){
+          const icon=document.createElement("span");
+          icon.className="cell-icon cell-special";
+          icon.textContent="🏆";
+          cell.appendChild(icon);
+        }else if(n===1){
+          const icon=document.createElement("span");
+          icon.className="cell-icon";
+          icon.textContent="🚩";
+          cell.appendChild(icon);
+        }else if(n%10===0){
+          const icon=document.createElement("span");
+          icon.className="cell-icon";
+          icon.textContent="⭐";
+          cell.appendChild(icon);
+        }
+
+        const players=document.createElement("div");
+        players.className="cell-players";
+        players.id=`players-${n}`;
+        cell.appendChild(players);
+        board.appendChild(cell);
+      }
+    }
+    renderTokens();
+  }
+
+  function log(text){
+    state.logs.unshift(text);
+    state.logs=state.logs.slice(0,9);
+    $("log").innerHTML="";
+    state.logs.forEach(item=>{
+      const line=document.createElement("div");
+      line.textContent="• "+item;
+      $("log").appendChild(line);
+    });
+  }
+
+  function renderTokens(){
+    for(let n=1;n<=100;n++){
+      const box=$(`players-${n}`);
+      if(box) box.innerHTML="";
+    }
+
+    const names=playerNames();
+    const avatars=[$("avatarChoice").value,state.mode==="bot"?"🤖":"🐸"];
+
+    state.positions.forEach((pos,i)=>{
+      const box=$(`players-${pos}`);
+      if(!box) return;
+
+      const token=document.createElement("span");
+      token.className="token "+(i===0?"p1":state.mode==="bot"?"robot":"p2");
+      token.textContent=avatars[i];
+      token.title=names[i];
+      box.appendChild(token);
+    });
+
+    $("pos1").textContent=`خانهٔ ${state.positions[0]}`;
+    $("pos2").textContent=`خانهٔ ${state.positions[1]}`;
+
+    $("card1").classList.toggle("active",state.current===0 && !state.over);
+    $("card2").classList.toggle("active",state.current===1 && !state.over);
+
+    $("turn1").textContent=state.current===0&&!state.over?"نوبت توئه! ⭐":"منتظر نوبت";
+    $("turn2").textContent=state.current===1&&!state.over
+      ? (state.mode==="bot"?"ربات داره فکر می‌کنه 🤖":"نوبت توئه! ⭐")
+      :"منتظر نوبت";
+  }
+
+  function playerNames(){
+    return [
+      "طاها",
+      state.mode==="bot"?"امیرعلی (ربات)":"بازیکن دوم"
+    ];
+  }
+
+  function refreshNames(){
+    $("name1").textContent="طاها";
+    $("avatar1").textContent=$("avatarChoice").value;
+
+    if(state.mode==="bot"){
+      $("name2").textContent="امیرعلی (ربات)";
+      $("avatar2").textContent="🤖";
+      $("modeBadge").textContent="🤖 بازی با ربات";
+    }else{
+      $("name2").textContent="بازیکن دوم";
+      $("avatar2").textContent="🐸";
+      $("modeBadge").textContent="👬 بازی دونفره";
+    }
+  }
+
+  function clearTurnTimer(){
+    if(state.timer!==null){
+      clearInterval(state.timer);
+      state.timer=null;
+    }
+  }
+
+  function updateTimerDisplay(){
+    $("timer").textContent=state.remaining;
+    $("timer").classList.toggle("warning",state.remaining<=5);
+  }
+
+  function startTurnTimer(){
+    clearTurnTimer();
+    if(state.over || state.busy) return;
+
+    state.remaining=state.duration;
+    updateTimerDisplay();
+    const token=++state.turnToken;
+
+    state.timer=setInterval(()=>{
+      if(token!==state.turnToken || state.over || state.busy){
+        clearTurnTimer();
+        return;
+      }
+
+      state.remaining--;
+      updateTimerDisplay();
+
+      if(state.remaining<=0){
+        clearTurnTimer();
+        state.timer=null;
+        if(state.busy || state.over) return;
+
+        log(`⏰ زمان ${playerNames()[state.current]} تموم شد!`);
+        $("message").textContent="⏰ وقت تموم شد! نوبت بعدی!";
+        state.current=1-state.current;
+        renderTokens();
+        startTurnTimer();
+        maybeBotTurn();
+      }
+    },1000);
+  }
+
+  function nextTurn(){
+    state.current=1-state.current;
+    state.busy=false;
+    renderTokens();
+    startTurnTimer();
+    maybeBotTurn();
+  }
+
+  function finishGame(winner){
+    state.over=true;
+    state.busy=false;
+    clearTurnTimer();
+    state.turnToken++;
+    renderTokens();
+
+    const name=playerNames()[winner];
+    $("winEmoji").textContent=winner===0?"🏆🦊🎉":"🏆🤖🎉";
+    $("winTitle").textContent=`آفرین ${name}!`;
+    $("winText").textContent=`به خانهٔ ۱۰۰ رسیدی و برنده شدی! 🎊 همه برات دست می‌زنن!`;
+    $("winModal").style.display="flex";
+    $("rollBtn").disabled=true;
+    $("dice").disabled=true;
+    $("message").textContent=`🎉 ${name} قهرمان شد!`;
+    log(`🏆 ${name} برندهٔ بازی شد!`);
+  }
+
+  function rollDice(){
+    if(state.over || state.busy) return;
+    if(state.mode==="bot" && state.current===1) return;
+
+    state.busy=true;
+    clearTurnTimer();
+    state.turnToken++;
+    $("rollBtn").disabled=true;
+    $("dice").disabled=true;
+
+    const dice=$("dice");
+    dice.classList.remove("rolling");
+    void dice.offsetWidth;
+    dice.classList.add("rolling");
+
+    let ticks=0;
+    const rollInterval=setInterval(()=>{
+      dice.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][Math.floor(Math.random()*6)];
+      ticks++;
+      if(ticks>=8){
+        clearInterval(rollInterval);
+        dice.classList.remove("rolling");
+        const value=Math.floor(Math.random()*6)+1;
+        dice.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][value-1];
+        $("diceCaption").textContent=`عدد تاس: ${value} 🎉`;
+        movePlayer(value);
+      }
+    },70);
+  }
+
+  function movePlayer(value){
+    const player=state.current;
+    const name=playerNames()[player];
+    const old=state.positions[player];
+    let next=old+value;
+
+    if(next>100){
+      $("message").textContent=`🎲 ${value} آوردی؛ برای رسیدن به ۱۰۰ باید عدد دقیق بیاری!`;
+      log(`${name} ${value} آورد ولی باید عدد دقیق بیاره.`);
+      finishTurnAfterPause();
+      return;
+    }
+
+    state.positions[player]=next;
+    renderTokens();
+    $("message").textContent=`🎲 ${name} از ${old} به ${next} رفت!`;
+    log(`${name} تاس ${value} آورد و به خانهٔ ${next} رسید.`);
+
+    setTimeout(()=>{
+      if(state.over) return;
+
+      if(snakes[next]){
+        const destination=snakes[next];
+        $("message").textContent=`😱 وای! مار کوچولو! از ${next} به ${destination} سر خوردی! 🐍`;
+        log(`${name} گرفتار مار شد: ${next} ← ${destination}`);
+        state.positions[player]=destination;
+        renderTokens();
+      }else if(ladders[next]){
+        const destination=ladders[next];
+        $("message").textContent=`🥳 آفرین! از نردبون رفتی بالا: ${next} به ${destination}! 🪜`;
+        log(`${name} از نردبون بالا رفت: ${next} → ${destination}`);
+        state.positions[player]=destination;
+        renderTokens();
+      }
+
+      setTimeout(()=>{
+        if(state.positions[player]===100){
+          finishGame(player);
+          return;
+        }
+        finishTurnAfterPause();
+      },650);
+    },450);
+  }
+
+  function finishTurnAfterPause(){
+    setTimeout(()=>{
+      if(state.over) return;
+      $("rollBtn").disabled=false;
+      $("dice").disabled=false;
+      nextTurn();
+    },550);
+  }
+
+  function maybeBotTurn(){
+    if(state.over || state.mode!=="bot" || state.current!==1) return;
+
+    $("rollBtn").disabled=true;
+    $("dice").disabled=true;
+    $("message").textContent="🤖 امیرعلی داره به تاسش فکر می‌کنه...";
+    const token=state.turnToken;
+
+    setTimeout(()=>{
+      if(state.over || state.current!==1 || state.turnToken!==token) return;
+      $("rollBtn").disabled=false;
+      $("dice").disabled=false;
+      rollDiceForBot();
+    },800+Math.random()*700);
+  }
+
+  function rollDiceForBot(){
+    if(state.over || state.busy || state.current!==1) return;
+    state.busy=true;
+    clearTurnTimer();
+    state.turnToken++;
+    $("rollBtn").disabled=true;
+    $("dice").disabled=true;
+
+    const dice=$("dice");
+    dice.classList.remove("rolling");
+    void dice.offsetWidth;
+    dice.classList.add("rolling");
+
+    let ticks=0;
+    const rollInterval=setInterval(()=>{
+      dice.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][Math.floor(Math.random()*6)];
+      ticks++;
+      if(ticks>=8){
+        clearInterval(rollInterval);
+        dice.classList.remove("rolling");
+        const value=Math.floor(Math.random()*6)+1;
+        dice.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][value-1];
+        $("diceCaption").textContent=`امیرعلی ${value} آورد! 🤖`;
+        movePlayer(value);
+      }
+    },75);
+  }
+
+  function newGame(){
+    clearTurnTimer();
+    state.turnToken++;
+    state.positions=[1,1];
+    state.current=0;
+    state.busy=false;
+    state.over=false;
+    state.mode=$("mode").value;
+    state.duration=Number($("turnLength").value)||15;
+    state.remaining=state.duration;
+    state.logs=[];
+    $("winModal").style.display="none";
+    $("rollBtn").disabled=false;
+    $("dice").disabled=false;
+    $("dice").textContent="🎲";
+    $("diceCaption").textContent="تاس منتظر توئه!";
+    $("message").textContent="🎉 بازی شروع شد! تاس بنداز و به خانهٔ ۱۰۰ برس!";
+    refreshNames();
+    buildBoard();
+    renderTokens();
+    log("بازی جدید شروع شد! موفق باشید! 🌈");
+    updateTimerDisplay();
+    startTurnTimer();
+    maybeBotTurn();
+  }
+
+  $("rollBtn").addEventListener("click",rollDice);
+  $("dice").addEventListener("click",rollDice);
+  $("newGameBtn").addEventListener("click",newGame);
+  $("playAgainBtn").addEventListener("click",newGame);
+  $("mode").addEventListener("change",newGame);
+  $("avatarChoice").addEventListener("change",()=>{
+    $("avatar1").textContent=$("avatarChoice").value;
+    renderTokens();
+  });
+  $("turnLength").addEventListener("change",newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>
